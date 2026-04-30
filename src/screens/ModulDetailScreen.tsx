@@ -1,22 +1,24 @@
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ModulDetailScreenProps {
   onBack: () => void;
+  onOpenAIChat?: () => void;
 }
 
-export function ModulDetailScreen({ onBack }: ModulDetailScreenProps) {
+export function ModulDetailScreen({ onBack, onOpenAIChat }: ModulDetailScreenProps) {
   return (
-    <div className="flex flex-col h-full bg-zinc-950 relative">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-md px-4 pt-5 pb-4 border-b border-zinc-800">
+    <div className="flex flex-col h-full w-full bg-zinc-950 relative">
+      
+      {/* 1. THE FIXED HEADER */}
+      <div className="w-full shrink-0 z-50 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 px-4 pt-5 pb-4">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="rounded-full bg-zinc-900 border border-zinc-800 text-white hover:bg-zinc-800 shrink-0 h-10 w-10"
+            className="rounded-full bg-zinc-900 border border-zinc-800 text-white hover:bg-zinc-800 shrink-0 h-10 w-10 whileTap-scale"
           >
             <ChevronLeft size={20} />
           </Button>
@@ -26,8 +28,8 @@ export function ModulDetailScreen({ onBack }: ModulDetailScreenProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-32">
+      {/* 2. THE SCROLLABLE BODY (Middle) */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-6 pb-32">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,15 +71,26 @@ export function ModulDetailScreen({ onBack }: ModulDetailScreenProps) {
         </motion.div>
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="absolute bottom-0 left-0 right-0 w-full p-4 border-t border-zinc-800 bg-zinc-950/90 backdrop-blur-md z-50">
-        <Button
-          onClick={onBack}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl h-14 text-lg shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
-        >
-          Selesai Membaca
-        </Button>
+      {/* 3. THE FIXED FOOTER (Action Bar) */}
+      <div className="absolute bottom-0 left-0 right-0 w-full p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-800 z-50 pb-safe">
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => onOpenAIChat && onOpenAIChat()}
+            className="flex-[4] bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-bold rounded-2xl h-14 text-sm gap-2 active:scale-95 transition-all"
+          >
+            <MessageCircle size={18} />
+            Tanya AI
+          </Button>
+          <Button
+            onClick={onBack}
+            className="flex-[6] bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl h-14 text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+          >
+            Selesai Membaca
+          </Button>
+        </div>
       </div>
+      
     </div>
   );
 }

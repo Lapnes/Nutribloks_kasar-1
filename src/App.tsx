@@ -13,6 +13,7 @@ import { LessonScreen } from "@/screens/LessonScreen";
 import { ModulDetailScreen } from "@/screens/ModulDetailScreen";
 import { FlashcardScreen } from "@/screens/FlashcardScreen";
 import { AIChatScreen } from "@/screens/AIChatScreen";
+import { NutriQuestScreen } from "@/screens/NutriQuestScreen";
 import type { ActiveTab, PlateItem } from "@/types";
 import { useNutriContext } from "@/context/NutriContext";
 
@@ -186,7 +187,7 @@ export function App() {
                   onStartLesson={() => setActiveTab("lesson")}
                   onOpenModulDetail={() => setActiveTab("modulDetail")}
                   onOpenFlashcard={() => setActiveTab("flashcard")}
-                  onOpenAIChat={() => setActiveTab("aiChat")}
+                  onOpenNutriQuest={() => setActiveTab("nutriQuest")}
                 />
               </motion.div>
             )}
@@ -246,11 +247,25 @@ export function App() {
                 <AIChatScreen onBack={() => setActiveTab("edukasi")} />
               </motion.div>
             )}
+
+            {activeTab === "nutriQuest" && (
+              <motion.div
+                key="nutriQuest"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <NutriQuestScreen onBack={() => setActiveTab("edukasi")} />
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
 
         {/* Bottom navigation */}
-        {!["lesson", "modulDetail", "flashcard", "aiChat"].includes(activeTab) && (
+        {!["lesson", "modulDetail", "flashcard", "aiChat", "nutriQuest"].includes(activeTab) && (
           <div className="shrink-0 z-50">
             <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
           </div>

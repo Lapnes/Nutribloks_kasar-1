@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, BookOpen, PlayCircle, CheckCircle, Book, Layers, MessageCircle } from "lucide-react";
+import { ChevronLeft, BookOpen, PlayCircle, CheckCircle, Book, Layers, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface EdukasiScreenProps {
@@ -7,7 +7,7 @@ interface EdukasiScreenProps {
   onStartLesson?: () => void;
   onOpenModulDetail?: () => void;
   onOpenFlashcard?: () => void;
-  onOpenAIChat?: () => void;
+  onOpenNutriQuest?: () => void;
 }
 
 const MOCK_MODULES = [
@@ -39,7 +39,7 @@ export function EdukasiScreen({
   onStartLesson,
   onOpenModulDetail,
   onOpenFlashcard,
-  onOpenAIChat
+  onOpenNutriQuest
 }: EdukasiScreenProps) {
   return (
     <div className="flex flex-col h-full overflow-y-auto pb-8 bg-zinc-950">
@@ -146,11 +146,11 @@ export function EdukasiScreen({
                 <span className="text-[8px] font-bold text-zinc-400 uppercase">Flash</span>
               </button>
               <button 
-                onClick={() => onOpenAIChat && onOpenAIChat()}
+                onClick={() => onOpenNutriQuest && onOpenNutriQuest()}
                 className="flex-1 flex flex-col items-center justify-center gap-1 hover:bg-white/5 transition-colors"
               >
-                <MessageCircle size={18} className="text-zinc-300" />
-                <span className="text-[8px] font-bold text-zinc-400 uppercase">Tanya</span>
+                <Target size={18} className="text-orange-500" />
+                <span className="text-[8px] font-bold text-orange-500 uppercase">Quest</span>
               </button>
             </div>
           </motion.div>
