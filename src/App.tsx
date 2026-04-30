@@ -216,7 +216,10 @@ export function App() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto bg-zinc-950"
               >
-                <ModulDetailScreen onBack={() => setActiveTab("edukasi")} />
+                <ModulDetailScreen 
+                  onBack={() => setActiveTab("edukasi")} 
+                  onOpenAIChat={() => setActiveTab("aiChat")}
+                />
               </motion.div>
             )}
 

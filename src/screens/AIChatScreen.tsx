@@ -76,9 +76,9 @@ export function AIChatScreen({ onBack }: AIChatScreenProps) {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-zinc-950">
+    <div className="flex flex-col h-full w-full bg-zinc-950 relative">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-md px-4 pt-5 pb-4 border-b border-zinc-800">
+      <div className="w-full shrink-0 z-50 bg-zinc-950/90 backdrop-blur-md px-4 pt-5 pb-4 border-b border-zinc-800">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -100,7 +100,7 @@ export function AIChatScreen({ onBack }: AIChatScreenProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-y-auto p-4">
+      <div className="flex-1 flex flex-col overflow-y-auto p-4 pb-32 scrollbar-hide">
         {/* Chips */}
         <div className="flex gap-2 overflow-x-auto pb-4 shrink-0 scrollbar-hide">
           {REKOMENDASI_PERTANYAAN.map((q, idx) => (
@@ -139,7 +139,7 @@ export function AIChatScreen({ onBack }: AIChatScreenProps) {
       </div>
 
       {/* Bottom Input Area */}
-      <div className="w-full p-4 border-t border-zinc-800 bg-zinc-950 shrink-0">
+      <div className="absolute bottom-0 left-0 right-0 w-full p-4 border-t border-zinc-800 bg-zinc-950/90 backdrop-blur-md z-50 pb-safe">
         <form
           onSubmit={(e) => {
             e.preventDefault();
