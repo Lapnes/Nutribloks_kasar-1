@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Edit2, Save, X } from "lucide-react";
+import { User, Edit2, Save, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ interface UserProfile {
 interface ProfileScreenProps {
   onProfileUpdate: (profile: UserProfile) => void;
   initialProfile?: UserProfile;
+  onGoToRekomendasi?: () => void;
 }
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -28,7 +29,7 @@ const DEFAULT_PROFILE: UserProfile = {
   targetCalories: 2000,
 };
 
-export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreenProps) {
+export function ProfileScreen({ onProfileUpdate, initialProfile, onGoToRekomendasi }: ProfileScreenProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>(initialProfile || DEFAULT_PROFILE);
   const [tempProfile, setTempProfile] = useState<UserProfile>(profile);
@@ -62,7 +63,7 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full"
+            className="rounded-full bg-zinc-900 border-white/10 text-white hover:bg-zinc-800"
             onClick={handleEdit}
           >
             <Edit2 size={16} />
@@ -71,16 +72,19 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
       </div>
 
       {/* Profile Card */}
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 mt-2">
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 p-6"
+          className="rounded-3xl border border-white/5 bg-zinc-900 p-6 shadow-lg relative overflow-hidden"
         >
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-bl-full pointer-events-none" />
+
           {/* Avatar */}
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 rounded-full bg-[#0077b6]/20 flex items-center justify-center">
-              <User size={40} className="text-[#0077b6]" />
+          <div className="flex justify-center mb-4 relative z-10">
+            <div className="w-20 h-20 rounded-full bg-orange-500/20 flex items-center justify-center border-2 border-orange-500/40 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+              <User size={40} className="text-orange-500" />
             </div>
           </div>
 
@@ -89,25 +93,25 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
             <Input
               value={tempProfile.name}
               onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })}
-              className="text-center text-lg font-bold mb-4 rounded-lg"
+              className="text-center text-lg font-bold mb-4 rounded-xl bg-zinc-800 border-white/10 text-white"
               placeholder="Nama"
             />
           ) : (
-            <h2 className="text-center text-xl font-bold text-foreground mb-4">
+            <h2 className="text-center text-2xl font-black text-white mb-4">
               {profile.name}
             </h2>
           )}
 
           {/* BMI Badge */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2 relative z-10">
             <Badge
               variant="secondary"
-              className={`${
+              className={`px-3 py-1 font-bold ${
                 bmiValue < 18.5
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50"
+                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                   : bmiValue < 25
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/50"
-                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/50"
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    : "bg-red-500/20 text-red-400 border border-red-500/30"
               }`}
             >
               BMI: {bmiValue}
@@ -117,11 +121,11 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
       </div>
 
       {/* Body Metrics */}
-      <div className="px-4 mb-4">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+      <div className="px-4 mb-5">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Data Fisik
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {[
             { label: "Umur", value: tempProfile.age, unit: "thn", key: "age" },
             { label: "Tinggi", value: tempProfile.height, unit: "cm", key: "height" },
@@ -129,9 +133,9 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
           ].map(({ label, value, unit, key }) => (
             <div
               key={key}
-              className="rounded-xl border bg-card p-3 flex flex-col items-center gap-1"
+              className="rounded-2xl border border-white/5 bg-zinc-900 p-3 flex flex-col items-center gap-1 shadow-sm"
             >
-              <p className="text-[9px] text-muted-foreground font-medium">{label}</p>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{label}</p>
               {isEditing ? (
                 <Input
                   type="number"
@@ -140,99 +144,105 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
                     const newVal = parseInt(e.target.value) || 0;
                     setTempProfile({ ...tempProfile, [key]: newVal });
                   }}
-                  className="w-full text-center text-sm font-bold h-7 p-1"
+                  className="w-full text-center text-sm font-bold h-8 p-1 bg-zinc-800 border-white/10 text-white rounded-lg mt-1"
                 />
               ) : (
-                <p className="text-lg font-bold text-foreground">{value}</p>
+                <p className="text-xl font-black text-white mt-0.5">{value}</p>
               )}
-              <p className="text-[8px] text-muted-foreground">{unit}</p>
+              <p className="text-[9px] text-muted-foreground font-medium">{unit}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Nutrition Targets */}
-      <div className="px-4 mb-4">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+      <div className="px-4 mb-5">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Target Harian
         </p>
 
-        {/* Daily Budget */}
-        <div className="rounded-2xl border bg-card p-4 mb-2 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">Anggaran Harian</p>
-            {isEditing ? (
-              <Input
-                type="number"
-                value={tempProfile.dailyBudget}
-                onChange={(e) =>
-                  setTempProfile({ ...tempProfile, dailyBudget: parseInt(e.target.value) || 0 })
-                }
-                className="w-32 text-lg font-bold h-8 p-1 mt-1"
-                inputMode="numeric"
-              />
-            ) : (
-              <p className="text-lg font-bold text-foreground mt-1">
-                Rp {tempProfile.dailyBudget.toLocaleString("id-ID")}
-              </p>
-            )}
+        <div className="flex flex-col gap-3">
+          {/* Daily Budget */}
+          <div className="rounded-2xl border border-white/5 bg-zinc-900 p-4 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Anggaran Harian</p>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={tempProfile.dailyBudget}
+                  onChange={(e) =>
+                    setTempProfile({ ...tempProfile, dailyBudget: parseInt(e.target.value) || 0 })
+                  }
+                  className="w-32 text-base font-bold h-9 p-2 mt-2 bg-zinc-800 border-white/10 text-white rounded-lg"
+                  inputMode="numeric"
+                />
+              ) : (
+                <p className="text-xl font-black text-emerald-400 mt-1">
+                  Rp {tempProfile.dailyBudget.toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-2xl">
+              💰
+            </div>
           </div>
-          <div className="text-3xl">💰</div>
-        </div>
 
-        {/* Target Calories */}
-        <div className="rounded-2xl border bg-card p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">Target Kalori</p>
-            {isEditing ? (
-              <Input
-                type="number"
-                value={tempProfile.targetCalories}
-                onChange={(e) =>
-                  setTempProfile({ ...tempProfile, targetCalories: parseInt(e.target.value) || 0 })
-                }
-                className="w-32 text-lg font-bold h-8 p-1 mt-1"
-                inputMode="numeric"
-              />
-            ) : (
-              <p className="text-lg font-bold text-foreground mt-1">
-                {tempProfile.targetCalories} kkal
-              </p>
-            )}
+          {/* Target Calories */}
+          <div className="rounded-2xl border border-white/5 bg-zinc-900 p-4 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Target Kalori</p>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={tempProfile.targetCalories}
+                  onChange={(e) =>
+                    setTempProfile({ ...tempProfile, targetCalories: parseInt(e.target.value) || 0 })
+                  }
+                  className="w-32 text-base font-bold h-9 p-2 mt-2 bg-zinc-800 border-white/10 text-white rounded-lg"
+                  inputMode="numeric"
+                />
+              ) : (
+                <p className="text-xl font-black text-orange-400 mt-1">
+                  {tempProfile.targetCalories} <span className="text-xs font-medium text-muted-foreground lowercase">kkal</span>
+                </p>
+              )}
+            </div>
+            <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-2xl">
+              🔥
+            </div>
           </div>
-          <div className="text-3xl">🔥</div>
         </div>
       </div>
 
       {/* Action Buttons */}
       {isEditing && (
-        <div className="px-4 flex gap-2">
+        <div className="px-4 flex gap-3 mb-4">
           <Button
             variant="outline"
-            className="flex-1 rounded-xl gap-1.5"
+            className="flex-1 rounded-xl gap-1.5 h-12 bg-zinc-900 border-white/10 text-white hover:bg-zinc-800"
             onClick={handleCancel}
           >
-            <X size={14} />
+            <X size={16} />
             Batal
           </Button>
           <Button
-            className="flex-1 rounded-xl gap-1.5"
-            style={{ backgroundColor: "#fca311", color: "#fff" }}
+            className="flex-[2] rounded-xl gap-1.5 h-12 text-base font-bold"
+            style={{ backgroundColor: "#f97316", color: "#fff" }}
             onClick={handleSave}
           >
-            <Save size={14} />
-            Simpan
+            <Save size={16} />
+            Simpan Perubahan
           </Button>
         </div>
       )}
 
       {/* Health Tips */}
-      <div className="px-4 mt-4">
-        <div className="rounded-2xl border bg-green-50 dark:bg-green-950/20 p-4">
-          <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-2">
-            Tips Kesehatan
+      <div className="px-4 mt-2">
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <p className="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-2">
+            <span>💡</span> Tips Kesehatan
           </p>
-          <ul className="text-[9px] text-green-600 dark:text-green-300 space-y-1 leading-relaxed">
+          <ul className="text-[10px] text-emerald-200/80 space-y-1.5 font-medium leading-relaxed">
             <li>✓ Makan 3x sehari dengan porsi seimbang</li>
             <li>✓ Penuhi kebutuhan sayur dan buah harian</li>
             <li>✓ Minum air putih minimal 8 gelas/hari</li>
@@ -240,6 +250,19 @@ export function ProfileScreen({ onProfileUpdate, initialProfile }: ProfileScreen
           </ul>
         </div>
       </div>
+
+      {/* Rekomendasi Action Button */}
+      {onGoToRekomendasi && (
+        <div className="px-4 mt-6 mb-8">
+          <Button
+            onClick={onGoToRekomendasi}
+            className="w-full h-14 rounded-2xl text-base font-bold bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20 gap-2"
+          >
+            <Sparkles size={20} />
+            Lihat Rekomendasi Menu Harian
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

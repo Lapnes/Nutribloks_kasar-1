@@ -67,10 +67,10 @@ export const FOOD_CATALOG: FoodItem[] = [
 ];
 
 export const MACRO_COLORS: Record<string, string> = {
-  carb: "#fca311",
-  protein: "#ef233c",
-  fat: "#0077b6",
-  veggie: "#2a9d8f",
+  carb: "#eab308", // Yellow (yellow-500)
+  protein: "#ef4444", // Red (red-500)
+  fat: "#d4d4d8", // Light Gray (zinc-300)
+  veggie: "#22c55e", // Green (green-500)
 };
 
 export const MACRO_LABELS: Record<string, string> = {

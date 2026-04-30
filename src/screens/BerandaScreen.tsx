@@ -1,28 +1,42 @@
 import { motion } from "framer-motion";
-import { Flame, Target, TrendingUp, Award } from "lucide-react";
+import { Flame, Target, Award, Droplets, Dumbbell, Cookie } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { MACRO_COLORS, MACRO_LABELS } from "@/data/foods";
-import type { RiwayatEntry } from "@/types";
+import { useNutriContext } from "@/context/NutriContext";
 
 interface BerandaScreenProps {
-  history: RiwayatEntry[];
+  history: any[];
   onGoToNutriLab: () => void;
 }
 
 export function BerandaScreen({ history, onGoToNutriLab }: BerandaScreenProps) {
-  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+  const { profile, todayIntake } = useNutriContext();
+  
+  const todayDate = new Date();
+  const todayString = todayDate.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+  
+  const hour = todayDate.getHours();
+  let greeting = "Selamat Malam";
+  if (hour < 11) greeting = "Selamat Pagi";
+  else if (hour < 15) greeting = "Selamat Siang";
+  else if (hour < 18) greeting = "Selamat Sore";
+
   const todayEntries = history.filter((e) => {
     const d = new Date(e.date);
-    const now = new Date();
-    return d.toDateString() === now.toDateString();
+    return d.toDateString() === todayDate.toDateString();
   });
-  const totalCaloriesToday = todayEntries.reduce(
-    (sum, e) => sum + e.items.reduce((s, i) => s + i.calories, 0),
-    0
-  );
+  
   const streak = Math.min(history.filter((e) => e.isBalanced).length, 7);
+  
+  // Calculate Progress Percentages based on rough daily targets
+  const carbTarget = 250; // grams
+  const proteinTarget = profile.weight * 1.5; // grams (rough estimate)
+  const fatTarget = 60; // grams
+  
+  const calPct = Math.min(100, Math.round((todayIntake.calories / profile.targetCalories) * 100)) || 0;
+  const carbPct = Math.min(100, Math.round((todayIntake.carbs / carbTarget) * 100)) || 0;
+  const proteinPct = Math.min(100, Math.round((todayIntake.protein / proteinTarget) * 100)) || 0;
+  const fatPct = Math.min(100, Math.round((todayIntake.fat / fatTarget) * 100)) || 0;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto pb-4">
@@ -30,13 +44,79 @@ export function BerandaScreen({ history, onGoToNutriLab }: BerandaScreenProps) {
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs text-muted-foreground capitalize">{today}</p>
+            <p className="text-xs text-muted-foreground capitalize">{todayString}</p>
             <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5">
-              Halo, Sobat Sehat! 👋
+              {greeting}, {profile.name}! 👋
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Sudah rakit menu sehatmu hari ini?
+            <p className="text-sm text-orange-400 font-medium mt-1">
+              Apakah hari ini makanan tercukupi?
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Calories Progress */}
+      <div className="px-4 mb-5 mt-2">
+        <div className="bg-zinc-900 border border-white/5 rounded-3xl p-5 shadow-lg">
+          <div className="flex justify-between items-end mb-3">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Kalori Hari Ini</p>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-3xl font-black text-white">{todayIntake.calories}</span>
+                <span className="text-sm text-muted-foreground font-medium">/ {profile.targetCalories} kkal</span>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
+              <Flame className="text-orange-500" size={20} />
+            </div>
+          </div>
+          <Progress value={calPct} className="h-3 bg-zinc-800" indicatorClassName="bg-orange-500" />
+        </div>
+      </div>
+
+      {/* Macros Progress Bars */}
+      <div className="px-4 mb-6">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          Asupan Makronutrien
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          {/* Karbo */}
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-3 flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <Cookie size={16} className="text-yellow-500" />
+              <span className="text-[10px] font-bold text-yellow-500">{carbPct}%</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white">Karbo</p>
+              <p className="text-[10px] text-muted-foreground">{todayIntake.carbs}g</p>
+            </div>
+            <Progress value={carbPct} className="h-1.5 bg-zinc-800" indicatorClassName="bg-yellow-500" />
+          </div>
+
+          {/* Protein */}
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-3 flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <Dumbbell size={16} className="text-red-500" />
+              <span className="text-[10px] font-bold text-red-500">{proteinPct}%</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white">Protein</p>
+              <p className="text-[10px] text-muted-foreground">{todayIntake.protein}g</p>
+            </div>
+            <Progress value={proteinPct} className="h-1.5 bg-zinc-800" indicatorClassName="bg-red-500" />
+          </div>
+
+          {/* Lemak */}
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-3 flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <Droplets size={16} className="text-orange-300" />
+              <span className="text-[10px] font-bold text-orange-300">{fatPct}%</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white">Lemak</p>
+              <p className="text-[10px] text-muted-foreground">{todayIntake.fat}g</p>
+            </div>
+            <Progress value={fatPct} className="h-1.5 bg-zinc-800" indicatorClassName="bg-orange-300" />
           </div>
         </div>
       </div>
@@ -46,12 +126,12 @@ export function BerandaScreen({ history, onGoToNutriLab }: BerandaScreenProps) {
         <motion.div
           whileTap={{ scale: 0.98 }}
           onClick={onGoToNutriLab}
-          className="relative overflow-hidden rounded-3xl cursor-pointer"
+          className="relative overflow-hidden rounded-3xl cursor-pointer border border-orange-500/20"
           style={{
-            background: "linear-gradient(135deg, #fca311 0%, #ef233c 100%)",
+            background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
           }}
         >
-          <div className="p-5">
+          <div className="p-5 relative z-10">
             <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">
               NutriLab
             </p>
@@ -61,118 +141,40 @@ export function BerandaScreen({ history, onGoToNutriLab }: BerandaScreenProps) {
             <p className="text-white/80 text-sm mt-1">
               Simulasikan piring ideal dengan anggaran pas
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5">
-              <span className="text-white text-xs font-bold">Mulai Rakit →</span>
+            <div className="mt-4 inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 transition-colors rounded-full px-4 py-2">
+              <span className="text-white text-sm font-bold">Mulai Rakit →</span>
             </div>
           </div>
-          <div className="absolute -bottom-4 -right-4 text-8xl opacity-20 select-none">🍽️</div>
+          <div className="absolute -bottom-6 -right-4 text-8xl opacity-20 select-none z-0">🍽️</div>
         </motion.div>
       </div>
 
       {/* Stats row */}
-      <div className="px-4 grid grid-cols-3 gap-2 mb-4">
+      <div className="px-4 grid grid-cols-2 gap-3 mb-4">
         {[
-          { icon: Flame, label: "Kalori Hari Ini", value: `${totalCaloriesToday}`, unit: "kkal", color: "#ef233c" },
-          { icon: Target, label: "Sesi Hari Ini", value: `${todayEntries.length}`, unit: "sesi", color: "#fca311" },
-          { icon: Award, label: "Streak Sehat", value: `${streak}`, unit: "hari", color: "#2a9d8f" },
+          { icon: Target, label: "Sesi Makan Hari Ini", value: `${todayEntries.length}`, unit: "sesi", color: "#f97316" },
+          { icon: Award, label: "Streak Sehat", value: `${streak}`, unit: "hari", color: "#10b981" },
         ].map(({ icon: Icon, label, value, unit, color }) => (
           <div
             key={label}
-            className="rounded-2xl border bg-card p-3 flex flex-col items-center gap-1"
+            className="rounded-2xl border border-white/5 bg-zinc-900 p-4 flex items-center gap-3"
           >
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${color}20` }}
             >
-              <Icon size={14} style={{ color }} />
+              <Icon size={20} style={{ color }} />
             </div>
-            <p className="text-lg font-extrabold text-foreground leading-none">{value}</p>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-wider text-center leading-tight">
-              {unit}
-            </p>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">{label}</p>
+              <p className="text-xl font-extrabold text-white leading-none">
+                {value} <span className="text-xs font-medium text-muted-foreground normal-case">{unit}</span>
+              </p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Nutrition tips */}
-      <div className="px-4 mb-4">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Panduan Makronutrien
-        </p>
-        <div className="flex flex-col gap-2">
-          {(["carb", "protein", "veggie", "fat"] as const).map((type) => {
-            const targets: Record<string, { pct: number; tip: string }> = {
-              carb: { pct: 50, tip: "50% piring = karbohidrat kompleks" },
-              protein: { pct: 25, tip: "25% piring = protein hewani/nabati" },
-              veggie: { pct: 25, tip: "25% piring = sayur dan buah segar" },
-              fat: { pct: 10, tip: "Lemak sehat secukupnya" },
-            };
-            const { pct, tip } = targets[type];
-            return (
-              <div key={type} className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5">
-                <div
-                  className="w-3 h-3 rounded-sm shrink-0"
-                  style={{ backgroundColor: MACRO_COLORS[type] }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-foreground">
-                      {MACRO_LABELS[type]}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{pct}%</span>
-                  </div>
-                  <Progress value={pct} className="h-1.5" />
-                  <p className="text-[10px] text-muted-foreground mt-1">{tip}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Recent activity */}
-      {history.length > 0 && (
-        <div className="px-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            Aktivitas Terbaru
-          </p>
-          <div className="flex flex-col gap-2">
-            {history.slice(-3).reverse().map((entry) => (
-              <div key={entry.id} className="rounded-2xl border bg-card px-3 py-2.5 flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${entry.isBalanced ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-yellow-100 dark:bg-yellow-900/30"}`}>
-                  {entry.isBalanced ? "✅" : "⚠️"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">
-                    {entry.items.map((i) => i.name).join(", ")}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    Rp {entry.totalPrice.toLocaleString("id-ID")} •{" "}
-                    {new Date(entry.date).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
-                <Badge variant={entry.isBalanced ? "default" : "secondary"} className="text-[9px]">
-                  {entry.isBalanced ? "Seimbang" : "Kurang"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {history.length === 0 && (
-        <div className="px-4">
-          <div className="rounded-2xl border-2 border-dashed border-border bg-muted/30 p-6 flex flex-col items-center gap-2">
-            <TrendingUp size={28} className="text-muted-foreground" />
-            <p className="text-sm font-semibold text-muted-foreground text-center">
-              Belum ada aktivitas
-            </p>
-            <p className="text-xs text-muted-foreground text-center">
-              Simpan menu dari NutriLab untuk melihat riwayatmu di sini
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

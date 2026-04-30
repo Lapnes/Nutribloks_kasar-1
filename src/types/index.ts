@@ -14,7 +14,14 @@ export interface PlateItem extends FoodItem {
   instanceId: string;
 }
 
-export type ActiveTab = "beranda" | "scan" | "nutrilab" | "riwayat" | "profil" | "rekomendasi" | "pengaturan";
+export type ActiveTab = "dashboard" | "scan" | "nutrilab" | "riwayat" | "profil" | "rekomendasi";
+
+export interface DailyIntake {
+  carbs: number;
+  protein: number;
+  fat: number;
+  calories: number;
+}
 
 export interface RiwayatEntry {
   id: string;
@@ -22,6 +29,7 @@ export interface RiwayatEntry {
   items: PlateItem[];
   totalPrice: number;
   isBalanced: boolean;
+  intake: DailyIntake;
 }
 
 export interface UserProfile {

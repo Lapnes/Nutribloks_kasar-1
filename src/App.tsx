@@ -1,78 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
+import { TopAppBar } from "@/components/TopAppBar";
 import { BerandaScreen } from "@/screens/BerandaScreen";
 import { ScanScreen } from "@/screens/ScanScreen";
 import { NutriLabScreen } from "@/screens/NutriLabScreen";
 import { RiwayatScreen } from "@/screens/RiwayatScreen";
 import { ProfileScreen } from "@/screens/ProfileScreen";
-import { RecommendationsScreen } from "@/screens/RecommendationsScreen";
-import { SettingsScreen } from "@/screens/SettingsScreen";
-import type { ActiveTab, PlateItem, RiwayatEntry, UserProfile } from "@/types";
+import { RekomendasiScreen } from "@/screens/RekomendasiScreen";
+import type { ActiveTab, PlateItem } from "@/types";
+import { useNutriContext } from "@/context/NutriContext";
 
-// Register service worker
+// Register service worker for PWA
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("/sw.js").catch((err) => {
+      console.log("Service Worker registration failed: ", err);
+    });
   });
 }
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("nutrilab");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("dashboard");
   const [scanItems, setScanItems] = useState<PlateItem[]>([]);
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nutriblocks-profile") || JSON.stringify({
-        name: "Pengguna",
-        age: 20,
-        height: 170,
-        weight: 65,
-        dailyBudget: 15000,
-        targetCalories: 2000,
-      }));
-    } catch {
-      return {
-        name: "Pengguna",
-        age: 20,
-        height: 170,
-        weight: 65,
-        dailyBudget: 15000,
-        targetCalories: 2000,
-      };
-    }
-  });
-  const [history, setHistory] = useState<RiwayatEntry[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nutriblocks-history") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  // Persist data
-  useEffect(() => {
-    localStorage.setItem("nutriblocks-history", JSON.stringify(history));
-  }, [history]);
-
-  useEffect(() => {
-    localStorage.setItem("nutriblocks-profile", JSON.stringify(profile));
-  }, [profile]);
-
-  const handleSaveToHistory = (entry: RiwayatEntry) => {
-    setHistory((prev) => [...prev, entry]);
-  };
+  
+  const { history, clearHistory, profile, setProfile, addToHistory } = useNutriContext();
 
   const handleScanComplete = (items: PlateItem[]) => {
     setScanItems(items);
     setActiveTab("nutrilab");
   };
 
-  const handleClearHistory = () => {
-    setHistory([]);
+  const handleProfileUpdate = (newProfile: typeof profile) => {
+    setProfile(newProfile);
   };
 
-  const handleProfileUpdate = (newProfile: UserProfile) => {
-    setProfile(newProfile);
+  const handleSaveToHistory = (entry: any) => {
+    addToHistory(entry);
   };
 
   const screenVariants = {
@@ -82,36 +46,27 @@ export function App() {
   };
 
   return (
-    <div className="min-h-svh bg-muted/30 flex items-center justify-center">
+    <div className="min-h-svh bg-zinc-900 flex items-center justify-center p-0 sm:p-4">
       {/* Phone frame on desktop */}
       <div
-        className="relative w-full bg-background flex flex-col overflow-hidden"
+        className="relative w-full bg-zinc-950 flex flex-col overflow-hidden sm:rounded-[40px] sm:shadow-2xl sm:border-[8px] sm:border-zinc-800"
         style={{
           maxWidth: 400,
           height: "100svh",
-          maxHeight: 900,
-          boxShadow: "0 0 0 1px oklch(0.922 0 0), 0 24px 64px rgba(0,0,0,0.18)",
-          borderRadius: "clamp(0px, 2vw, 40px)",
+          maxHeight: 850,
         }}
       >
-        {/* Status bar simulation */}
-        <div className="flex items-center justify-between px-5 py-2 shrink-0">
-          <span className="text-xs font-semibold text-foreground">
-            {new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
-          </span>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-2 rounded-sm border border-foreground/40 relative">
-              <div className="absolute inset-0.5 bg-foreground/40 rounded-xs" style={{ width: "70%" }} />
-            </div>
-          </div>
-        </div>
+        <TopAppBar 
+          onOpenSettings={() => setActiveTab("profil")} 
+          onOpenRekomendasi={() => setActiveTab("rekomendasi")} 
+        />
 
         {/* Main content area */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative bg-zinc-950">
           <AnimatePresence mode="wait">
-            {activeTab === "beranda" && (
+            {activeTab === "dashboard" && (
               <motion.div
-                key="beranda"
+                key="dashboard"
                 variants={screenVariants}
                 initial="initial"
                 animate="animate"
@@ -168,7 +123,7 @@ export function App() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto"
               >
-                <RiwayatScreen history={history} onClear={handleClearHistory} />
+                <RiwayatScreen history={history} onClear={clearHistory} />
               </motion.div>
             )}
 
@@ -182,7 +137,11 @@ export function App() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto"
               >
-                <ProfileScreen initialProfile={profile} onProfileUpdate={handleProfileUpdate} />
+                <ProfileScreen 
+                  initialProfile={profile} 
+                  onProfileUpdate={handleProfileUpdate} 
+                  onGoToRekomendasi={() => setActiveTab("rekomendasi")}
+                />
               </motion.div>
             )}
 
@@ -194,44 +153,16 @@ export function App() {
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute inset-0 overflow-y-auto"
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
               >
-                <RecommendationsScreen history={history} budget={profile.dailyBudget} />
-              </motion.div>
-            )}
-
-            {activeTab === "pengaturan" && (
-              <motion.div
-                key="pengaturan"
-                variants={screenVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute inset-0 overflow-y-auto"
-              >
-                <SettingsScreen
-                  initialSettings={{
-                    dailyBudget: profile.dailyBudget,
-                    weeklyBudget: profile.dailyBudget * 7,
-                    targetCalories: profile.targetCalories,
-                    preferredMeals: 3,
-                  }}
-                  onSettingsSave={(settings) => {
-                    handleProfileUpdate({
-                      ...profile,
-                      dailyBudget: settings.dailyBudget,
-                      targetCalories: settings.targetCalories,
-                    });
-                  }}
-                />
+                <RekomendasiScreen onBack={() => setActiveTab("dashboard")} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Bottom navigation */}
-        <div className="shrink-0">
+        <div className="shrink-0 z-50">
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
       </div>

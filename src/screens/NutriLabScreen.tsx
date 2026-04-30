@@ -7,8 +7,8 @@ import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { FOOD_CATALOG } from "@/data/foods";
 import type { FoodItem, PlateItem, RiwayatEntry } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useNutriContext } from "@/context/NutriContext";
 
 interface NutriLabScreenProps {
   preloadedItems?: PlateItem[];
@@ -16,8 +16,7 @@ interface NutriLabScreenProps {
 }
 
 export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLabScreenProps) {
-  const [budget, setBudget] = useState(15000);
-  const [budgetInput, setBudgetInput] = useState("15000");
+  const { remainingBudget, addIntake } = useNutriContext();
   const [plateItems, setPlateItems] = useState<PlateItem[]>(preloadedItems);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragCandidate, setDragCandidate] = useState<FoodItem | null>(null);
@@ -32,7 +31,7 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
 
   const handleDrop = useCallback(
     (food: FoodItem) => {
-      if (totalPrice + food.price > budget + 1) return;
+      if (totalPrice + food.price > remainingBudget + 1) return;
       const instance: PlateItem = {
         ...food,
         instanceId: `${food.id}-${Date.now()}-${Math.random()}`,
@@ -41,20 +40,20 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
       setIsDragOver(false);
       setDragCandidate(null);
     },
-    [totalPrice, budget]
+    [totalPrice, remainingBudget]
   );
 
   // Tap-to-add (mobile friendly alternative to drag)
   const handleTap = useCallback(
     (food: FoodItem) => {
-      if (totalPrice + food.price > budget) return;
+      if (totalPrice + food.price > remainingBudget) return;
       const instance: PlateItem = {
         ...food,
         instanceId: `${food.id}-${Date.now()}-${Math.random()}`,
       };
       setPlateItems((prev) => [...prev, instance]);
     },
-    [totalPrice, budget]
+    [totalPrice, remainingBudget]
   );
 
   const handleRemove = useCallback((instanceId: string) => {
@@ -66,25 +65,40 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
     setIsDragOver(false);
   };
 
-  const handleBudgetChange = (val: string) => {
-    setBudgetInput(val);
-    const num = parseInt(val.replace(/\D/g, ""), 10);
-    if (!isNaN(num)) setBudget(num);
-  };
-
   const handleSave = () => {
     if (!onSaveToHistory || plateItems.length === 0) return;
     const types = new Set(plateItems.map((i) => i.type));
+    
+    // Add nutrients to todayIntake
+    const plateCarbs = plateItems.filter(i => i.type === "carb").reduce((sum, i) => sum + i.calories / 4, 0); // rough conversion
+    const plateProtein = plateItems.filter(i => i.type === "protein").reduce((sum, i) => sum + i.calories / 4, 0);
+    const plateFat = plateItems.filter(i => i.type === "fat").reduce((sum, i) => sum + i.calories / 9, 0);
+    const plateCalories = plateItems.reduce((sum, i) => sum + i.calories, 0);
+
+    const intake = {
+      carbs: plateCarbs,
+      protein: plateProtein,
+      fat: plateFat,
+      calories: plateCalories,
+    };
+
     const entry: RiwayatEntry = {
       id: `entry-${Date.now()}`,
       date: new Date().toISOString(),
       items: plateItems,
       totalPrice,
-      isBalanced: types.has("carb") && types.has("protein") && types.has("veggie"),
+      isBalanced: types.has("carb") && types.has("protein") && (types.has("veggie") || types.has("fat")),
+      intake: intake,
     };
+    
+    addIntake(intake);
     onSaveToHistory(entry);
     setSavedNotice(true);
-    setTimeout(() => setSavedNotice(false), 2000);
+    
+    setTimeout(() => {
+      setSavedNotice(false);
+      setPlateItems([]);
+    }, 2000);
   };
 
   // Handle pointer up on plate div to detect drop
@@ -94,64 +108,57 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
     }
   }, [dragCandidate, isDragOver, handleDrop]);
 
-  const isOverBudget = (food: FoodItem) => totalPrice + food.price > budget;
+  const isOverBudget = (food: FoodItem) => totalPrice + food.price > remainingBudget;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto pb-4">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+      <div className="px-4 pt-5 pb-3 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-extrabold text-foreground tracking-tight">NutriLab</h1>
           <p className="text-xs text-muted-foreground">Rakit menu sehat sesuai anggaran</p>
         </div>
-        <Badge variant="secondary" className="text-xs font-semibold px-2 py-1">
+        <Badge variant="secondary" className="text-xs font-semibold px-2 py-1 bg-zinc-800 text-white border border-white/10">
           {plateItems.length} item
         </Badge>
       </div>
 
       {/* Budget section */}
-      <div className="px-4 mb-3">
-        <div className="rounded-2xl border bg-card p-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#fca311]/15 flex items-center justify-center shrink-0">
-            <Wallet size={18} className="text-[#fca311]" />
+      <div className="px-4 mb-4">
+        <div className="rounded-2xl border border-white/5 bg-zinc-900 p-4 flex items-center gap-4 shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0 border border-orange-500/20">
+            <Wallet size={20} className="text-orange-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-0.5">
-              Batas Anggaran
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
+              Sisa Anggaran Hari Ini
             </p>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-semibold text-muted-foreground">Rp</span>
-              <Input
-                type="number"
-                value={budgetInput}
-                onChange={(e) => handleBudgetChange(e.target.value)}
-                className="h-7 text-sm font-bold border-0 shadow-none p-0 focus-visible:ring-0 bg-transparent w-24"
-                inputMode="numeric"
-              />
-            </div>
+            <p className="text-sm font-bold text-emerald-400">
+              Rp {remainingBudget.toLocaleString("id-ID")}
+            </p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-0.5">
-              Total Harga
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">
+              Total Harga Menu
             </p>
             <motion.p
               key={totalPrice}
               initial={{ scale: 1.1 }}
               animate={{ scale: 1 }}
-              className={`text-sm font-bold ${
-                totalPrice > budget ? "text-destructive" : "text-foreground"
+              className={`text-base font-black ${
+                totalPrice > remainingBudget ? "text-red-500" : "text-white"
               }`}
             >
               Rp {totalPrice.toLocaleString("id-ID")}
             </motion.p>
             {/* Budget bar */}
-            <div className="mt-1 w-20 h-1 rounded-full bg-muted overflow-hidden">
+            <div className="mt-1.5 w-24 h-1.5 rounded-full bg-zinc-800 overflow-hidden ml-auto">
               <motion.div
                 className="h-full rounded-full"
                 style={{
-                  backgroundColor: totalPrice > budget ? "#ef233c" : "#fca311",
+                  backgroundColor: totalPrice > remainingBudget ? "#ef4444" : "#f97316",
                 }}
-                animate={{ width: `${Math.min((totalPrice / budget) * 100, 100)}%` }}
+                animate={{ width: `${Math.min((totalPrice / Math.max(remainingBudget, 1)) * 100, 100)}%` }}
                 transition={{ duration: 0.4 }}
               />
             </div>
@@ -175,35 +182,35 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
       </div>
 
       {/* Action buttons */}
-      <div className="px-4 mt-3 flex gap-2">
+      <div className="px-4 mt-5 flex gap-3">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 rounded-xl gap-1.5"
+          className="flex-1 rounded-xl gap-1.5 h-12 bg-zinc-900 border-white/10 text-white hover:bg-zinc-800 hover:text-white"
           onClick={handleReset}
           disabled={plateItems.length === 0}
         >
-          <RotateCcw size={14} />
+          <RotateCcw size={16} />
           Reset
         </Button>
         <Button
           size="sm"
-          className="flex-1 rounded-xl gap-1.5 relative"
+          className="flex-[2] rounded-xl gap-1.5 relative h-12 text-base font-bold"
           onClick={handleSave}
           disabled={plateItems.length === 0}
-          style={{ backgroundColor: "#fca311", color: "#fff" }}
+          style={{ backgroundColor: "#f97316", color: "#fff" }}
         >
-          <Save size={14} />
-          Simpan ke Riwayat
+          <Save size={16} />
+          Simpan Menu
           <AnimatePresence>
             {savedNotice && (
               <motion.span
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="absolute -top-7 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap"
+                className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-zinc-950 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-lg"
               >
-                Tersimpan!
+                Berhasil Tersimpan!
               </motion.span>
             )}
           </AnimatePresence>
@@ -211,19 +218,19 @@ export function NutriLabScreen({ preloadedItems = [], onSaveToHistory }: NutriLa
       </div>
 
       {/* Feedback panel */}
-      <div className="px-4 mt-3">
-        <FeedbackPanel items={plateItems} totalPrice={totalPrice} budget={budget} />
+      <div className="px-4 mt-4">
+        <FeedbackPanel items={plateItems} totalPrice={totalPrice} budget={remainingBudget} />
       </div>
 
       {/* Food catalog */}
-      <div className="mt-4">
-        <div className="px-4 mb-2 flex items-center justify-between">
+      <div className="mt-5 mb-4">
+        <div className="px-4 mb-3 flex items-center justify-between">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Katalog Makanan
           </p>
-          <p className="text-[10px] text-muted-foreground">Ketuk untuk tambah ke piring</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Seret / Ketuk</p>
         </div>
-        <div className="pl-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
+        <div className="pl-4 flex gap-3 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
           {FOOD_CATALOG.map((food) => (
             <div key={food.id} style={{ scrollSnapAlign: "start" }}>
               <FoodCard
