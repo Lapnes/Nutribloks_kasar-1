@@ -1,57 +1,57 @@
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNutriContext } from "@/context/NutriContext";
+import type { PlateItem } from "@/types";
 
 interface RekomendasiScreenProps {
   onBack: () => void;
+  onUseMenu: (items: PlateItem[]) => void;
 }
 
-const MOCK_RECOMMENDATIONS = [
+const MOCK_MEAL_SETS = [
   {
-    title: "Sumber Karbohidrat",
-    colorBorder: "border-[#fca311]",
+    id: "set-1",
+    title: "Paket Hemat Berserat",
+    price: 8000,
+    alasan: "Riwayat mingguanmu menunjukkan asupan lemak jenuh tinggi. Paket ini rendah lemak dan ramah di kantong.",
     items: [
-      { name: "Nasi Putih", price: 3000, emoji: "🍚" },
-      { name: "Mie Goreng", price: 4000, emoji: "🍜" },
-      { name: "Kentang Goreng", price: 5000, emoji: "🍟" },
-      { name: "Roti Gandum", price: 3000, emoji: "🍞" },
+      { name: "Nasi Putih", price: 3000, emoji: "🍚", type: "carb", calories: 200, description: "Sumber energi utama" },
+      { name: "Tempe Goreng", price: 2000, emoji: "🧆", type: "protein", calories: 150, description: "Protein nabati murah" },
+      { name: "Tumis Kangkung", price: 3000, emoji: "🥬", type: "veggie", calories: 50, description: "Sayuran hijau segar" },
     ],
   },
   {
-    title: "Sumber Protein",
-    colorBorder: "border-[#ef233c]",
+    id: "set-2",
+    title: "Paket Recovery Otot",
+    price: 18000,
+    alasan: "Kemarin kamu defisit protein. Kombinasi ayam dan telur ini akan memenuhi blok protein merahmu secara optimal.",
     items: [
-      { name: "Tempe Goreng", price: 2000, emoji: "🧆" },
-      { name: "Telur Dadar", price: 4000, emoji: "🍳" },
-      { name: "Ikan Nila Goreng", price: 7000, emoji: "🐟" },
-      { name: "Ayam Bakar", price: 9000, emoji: "🍗" },
-      { name: "Udang Goreng", price: 10000, emoji: "🍤" },
-    ],
-  },
-  {
-    title: "Sayur & Buah",
-    colorBorder: "border-[#2a9d8f]",
-    items: [
-      { name: "Tumis Kangkung", price: 3000, emoji: "🥬" },
-      { name: "Sayur Sop", price: 4000, emoji: "🥣" },
-      { name: "Buah Pisang", price: 2000, emoji: "🍌" },
-      { name: "Buah Jeruk", price: 3000, emoji: "🍊" },
-    ],
-  },
-  {
-    title: "Lemak & Tambahan",
-    colorBorder: "border-[#9ca3af]",
-    items: [
-      { name: "Susu UHT", price: 4000, emoji: "🥛" },
-      { name: "Alpukat", price: 5000, emoji: "🥑" },
-      { name: "Kerupuk", price: 1000, emoji: "🍘" },
+      { name: "Nasi Putih", price: 3000, emoji: "🍚", type: "carb", calories: 200, description: "Sumber energi utama" },
+      { name: "Ayam Bakar", price: 9000, emoji: "🍗", type: "protein", calories: 250, description: "Tinggi protein" },
+      { name: "Telur Dadar", price: 4000, emoji: "🍳", type: "protein", calories: 90, description: "Protein mudah cerna" },
+      { name: "Buah Pisang", price: 2000, emoji: "🍌", type: "veggie", calories: 105, description: "Karbohidrat cepat" },
     ],
   },
 ];
 
-export function RekomendasiScreen({ onBack }: RekomendasiScreenProps) {
+export function RekomendasiScreen({ onBack, onUseMenu }: RekomendasiScreenProps) {
   const { profile } = useNutriContext();
+
+  const handleUseMenu = (items: any[]) => {
+    // Convert to PlateItem by adding a unique instanceId
+    const plateItems: PlateItem[] = items.map((item) => ({
+      id: `${item.name.toLowerCase().replace(/ /g, "-")}`,
+      name: item.name,
+      price: item.price,
+      type: item.type,
+      emoji: item.emoji,
+      calories: item.calories,
+      description: item.description,
+      instanceId: `rekomendasi-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    }));
+    onUseMenu(plateItems);
+  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto pb-8 bg-zinc-950">
@@ -66,8 +66,8 @@ export function RekomendasiScreen({ onBack }: RekomendasiScreenProps) {
           >
             <ChevronLeft size={20} />
           </Button>
-          <h1 className="text-xl font-extrabold text-white tracking-tight leading-tight">
-            Rekomendasi Menu Pintar
+          <h1 className="text-xl font-extrabold text-white tracking-tight leading-tight flex items-center gap-2">
+            Rekomendasi AI <Sparkles size={18} className="text-orange-500" />
           </h1>
         </div>
         <div className="bg-zinc-900/80 rounded-xl p-3 border border-orange-500/20 shadow-sm flex items-center justify-between">
@@ -81,36 +81,64 @@ export function RekomendasiScreen({ onBack }: RekomendasiScreenProps) {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 mt-6 flex flex-col gap-8">
-        {MOCK_RECOMMENDATIONS.map((category, idx) => (
+      <div className="px-4 mt-6 flex flex-col gap-5">
+        {MOCK_MEAL_SETS.map((set, idx) => (
           <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 10 }}
+            key={set.id}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1, duration: 0.3 }}
+            transition={{ delay: idx * 0.15, duration: 0.4 }}
+            className="bg-zinc-900 border border-white/10 rounded-3xl p-5 flex flex-col gap-4 shadow-md"
           >
-            <h2 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <div className={`w-2 h-4 rounded-full border-l-4 ${category.colorBorder}`} />
-              {category.title}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {category.items.map((item, itemIdx) => (
-                <motion.div
-                  key={itemIdx}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`bg-zinc-900 border-t-[3px] ${category.colorBorder} border-x border-b border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-sm cursor-pointer hover:bg-zinc-800 transition-colors duration-200`}
+            {/* Title & Price */}
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-lg font-extrabold text-white leading-tight">
+                {set.title}
+              </h2>
+              <div className="bg-orange-500/20 px-3 py-1 rounded-full border border-orange-500/30 shrink-0">
+                <span className="text-orange-500 font-bold text-sm">
+                  Rp {set.price.toLocaleString("id-ID")}
+                </span>
+              </div>
+            </div>
+
+            {/* Items Included (Chips) */}
+            <div className="flex flex-wrap gap-2">
+              {set.items.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-zinc-800 border border-white/5 rounded-full px-3 py-1.5 flex items-center gap-1.5"
                 >
-                  <span className="text-4xl filter drop-shadow-md mb-1">{item.emoji}</span>
-                  <p className="text-[11px] font-semibold text-white text-center leading-tight">
+                  <span className="text-sm">{item.emoji}</span>
+                  <span className="text-xs font-semibold text-zinc-200">
                     {item.name}
-                  </p>
-                  <p className="text-xs font-black text-orange-500">
-                    Rp {item.price.toLocaleString("id-ID")}
-                  </p>
-                </motion.div>
+                  </span>
+                </div>
               ))}
             </div>
+
+            {/* AI Reasoning */}
+            <div className="bg-orange-950/30 border border-orange-500/20 rounded-xl p-3 flex gap-3 mt-1">
+              <div className="mt-0.5 text-orange-400 shrink-0">
+                <Info size={16} />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-orange-400 mb-0.5 uppercase tracking-wide">
+                  Alasan AI
+                </p>
+                <p className="text-xs text-zinc-300 leading-relaxed">
+                  {set.alasan}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <Button
+              onClick={() => handleUseMenu(set.items)}
+              className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+            >
+              Gunakan Menu Ini
+            </Button>
           </motion.div>
         ))}
       </div>

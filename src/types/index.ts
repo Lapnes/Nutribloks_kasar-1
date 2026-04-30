@@ -14,7 +14,7 @@ export interface PlateItem extends FoodItem {
   instanceId: string;
 }
 
-export type ActiveTab = "dashboard" | "scan" | "nutrilab" | "riwayat" | "profil" | "rekomendasi";
+export type ActiveTab = "dashboard" | "scan" | "nutrilab" | "riwayat" | "profil" | "rekomendasi" | "edukasi" | "lesson" | "modulDetail" | "flashcard" | "aiChat";
 
 export interface DailyIntake {
   carbs: number;

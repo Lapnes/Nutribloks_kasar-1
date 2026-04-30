@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Bluetooth, Menu, CheckCircle2, Sparkles } from "lucide-react";
+import { Settings, Bluetooth, Menu, CheckCircle2, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,9 +20,10 @@ type IoTState = "idle" | "connecting" | "connected";
 interface TopAppBarProps {
   onOpenSettings: () => void;
   onOpenRekomendasi?: () => void;
+  onOpenEdukasi?: () => void;
 }
 
-export function TopAppBar({ onOpenSettings, onOpenRekomendasi }: TopAppBarProps) {
+export function TopAppBar({ onOpenSettings, onOpenRekomendasi, onOpenEdukasi }: TopAppBarProps) {
   const [iotModalOpen, setIotModalOpen] = useState(false);
   const [iotState, setIotState] = useState<IoTState>("idle");
 
@@ -60,6 +61,12 @@ export function TopAppBar({ onOpenSettings, onOpenRekomendasi }: TopAppBarProps)
               <DropdownMenuItem onClick={onOpenRekomendasi} className="gap-2 focus:bg-white/10 focus:text-yellow-400 cursor-pointer py-3 border-t border-white/5">
                 <Sparkles size={18} />
                 <span>Rekomendasi Menu</span>
+              </DropdownMenuItem>
+            )}
+            {onOpenEdukasi && (
+              <DropdownMenuItem onClick={onOpenEdukasi} className="gap-2 focus:bg-white/10 focus:text-blue-400 cursor-pointer py-3 border-t border-white/5">
+                <BookOpen size={18} />
+                <span>Pusat Pembelajaran (E-Learning)</span>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

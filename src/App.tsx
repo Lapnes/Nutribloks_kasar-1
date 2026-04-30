@@ -8,6 +8,11 @@ import { NutriLabScreen } from "@/screens/NutriLabScreen";
 import { RiwayatScreen } from "@/screens/RiwayatScreen";
 import { ProfileScreen } from "@/screens/ProfileScreen";
 import { RekomendasiScreen } from "@/screens/RekomendasiScreen";
+import { EdukasiScreen } from "@/screens/EdukasiScreen";
+import { LessonScreen } from "@/screens/LessonScreen";
+import { ModulDetailScreen } from "@/screens/ModulDetailScreen";
+import { FlashcardScreen } from "@/screens/FlashcardScreen";
+import { AIChatScreen } from "@/screens/AIChatScreen";
 import type { ActiveTab, PlateItem } from "@/types";
 import { useNutriContext } from "@/context/NutriContext";
 
@@ -59,6 +64,7 @@ export function App() {
         <TopAppBar 
           onOpenSettings={() => setActiveTab("profil")} 
           onOpenRekomendasi={() => setActiveTab("rekomendasi")} 
+          onOpenEdukasi={() => setActiveTab("edukasi")}
         />
 
         {/* Main content area */}
@@ -155,16 +161,100 @@ export function App() {
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="absolute inset-0 overflow-y-auto bg-zinc-950"
               >
-                <RekomendasiScreen onBack={() => setActiveTab("dashboard")} />
+                <RekomendasiScreen 
+                  onBack={() => setActiveTab("dashboard")} 
+                  onUseMenu={(items) => {
+                    setScanItems(items);
+                    setActiveTab("nutrilab");
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === "edukasi" && (
+              <motion.div
+                key="edukasi"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <EdukasiScreen 
+                  onBack={() => setActiveTab("dashboard")} 
+                  onStartLesson={() => setActiveTab("lesson")}
+                  onOpenModulDetail={() => setActiveTab("modulDetail")}
+                  onOpenFlashcard={() => setActiveTab("flashcard")}
+                  onOpenAIChat={() => setActiveTab("aiChat")}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === "lesson" && (
+              <motion.div
+                key="lesson"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <LessonScreen onBack={() => setActiveTab("edukasi")} />
+              </motion.div>
+            )}
+
+            {activeTab === "modulDetail" && (
+              <motion.div
+                key="modulDetail"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <ModulDetailScreen onBack={() => setActiveTab("edukasi")} />
+              </motion.div>
+            )}
+
+            {activeTab === "flashcard" && (
+              <motion.div
+                key="flashcard"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <FlashcardScreen onBack={() => setActiveTab("edukasi")} />
+              </motion.div>
+            )}
+
+            {activeTab === "aiChat" && (
+              <motion.div
+                key="aiChat"
+                variants={screenVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-0 overflow-y-auto bg-zinc-950"
+              >
+                <AIChatScreen onBack={() => setActiveTab("edukasi")} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Bottom navigation */}
-        <div className="shrink-0 z-50">
-          <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
+        {!["lesson", "modulDetail", "flashcard", "aiChat"].includes(activeTab) && (
+          <div className="shrink-0 z-50">
+            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
+        )}
       </div>
     </div>
   );

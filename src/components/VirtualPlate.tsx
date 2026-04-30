@@ -53,17 +53,14 @@ export function VirtualPlate({ items, onRemove, isDragOver, onDragOver }: Virtua
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
-        Bento Box Nutrisi
-      </p>
 
       {/* Rectangular Plate with Compartments */}
       <motion.div
         ref={plateRef}
         className="relative border-4 rounded-xl overflow-hidden shadow-2xl"
-        style={{ 
-          width: 280, 
-          height: 310, 
+        style={{
+          width: 280,
+          height: 310,
           backgroundColor: "#18181b", // zinc-900 (lighter dark-gray)
           borderColor: "#f97316" // orange-500
         }}
@@ -132,17 +129,11 @@ export function VirtualPlate({ items, onRemove, isDragOver, onDragOver }: Virtua
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="bg-orange-500 rounded-xl w-14 h-14 flex items-center justify-center shadow-lg">
-              <span className="text-3xl text-white font-bold">+</span>
-            </div>
+
           </motion.div>
         )}
       </motion.div>
 
-      {/* Info text */}
-      <p className="text-[10px] text-muted-foreground text-center px-4 leading-tight max-w-[250px]">
-        Isi setiap bagian dengan proporsi yang sesuai untuk menjaga kesehatan
-      </p>
     </div>
   );
 }
